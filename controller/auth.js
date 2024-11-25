@@ -26,10 +26,63 @@ const transporter = nodemailer.createTransport({
   logger: true,
 });
 
+// *********
+
+const candidateCollection = db.collection("candidate");
+// async function connectToDatabase() {
+//   try {
+//     if (!client.topology || !client.topology.isConnected()) {
+//       await client.connect();
+//       console.log("Connected to MongoDB");
+//     }
+//   } catch (err) {
+//     console.error("Error connecting to MongoDB:", err);
+//     throw err;
+//   }
+// }
+
+// *********************************************************************
+// const user = await userCollection.findOne({ email });
+
+// const userData = {
+//   _id: new ObjectId(),
+//   name,
+//   email,
+//   password: hashedPassword,
+//   age,
+//   gender,
+//   phone,
+//   avatar: req.file?.filename || "default-avatar.jpg",
+//   role,
+//   isActive: false,
+//   createdAt: new Date(),
+// };
+// console.log("Inserting user data into database...");
+// const userInsertResult = await userCollection.insertOne(userData);
+// console.log("Patient data inserted successfully", userInsertResult);
+// return res.status(200).json({ message: "User registered successfully" });
+// return res.status(500).json({ message: "Server error" });
+
 exports.register = async (req, res) => {
   res.send("Hello World!!");
+  // حالة الطلب
+  // {
+  //   "candidateName": "John Doe",
+  //   "email": "john@example.com",
+  //   "skills": ["JavaScript", "React", "Node.js"],
+  //   "experience": 3,
+  //   "resume": "path-to-uploaded-resume.pdf",
+  //   "status": "Under Review"
+  // }
+
+  // await userCollection.updateOne(
+  //   { email },
+  //   { $set: { isActive: true }, $unset: { confirmationCode: "" } }
+  // );
 };
 exports.apply = async (req, res) => {
+  const { name, email } = req.body;
+  // await connectToDatabase();
   console.log(await processResume(req.file.path));
 };
 exports.generateToken = async (req, res) => {

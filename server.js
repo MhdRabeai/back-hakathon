@@ -10,7 +10,7 @@ const http = require("http");
 const { connectDB } = require("./config/db");
 const server = http.createServer(app);
 require("dotenv").config();
-const port = process.env.PRTO || 19099;
+const port = process.env.PRTO || 4000;
 const io = require("socket.io")(server, {
   // pingTimeout: 60000,
   cors: {

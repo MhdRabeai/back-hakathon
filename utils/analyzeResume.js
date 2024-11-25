@@ -1,55 +1,59 @@
 const fs = require("fs");
 const pdfParse = require("pdf-parse");
-const moment = require("moment");
+const { DateTime } = require("luxon");
 
-// دالة لتحليل التاريخ بشكل دقيق
+const extractTextFromPDF = async (pdfPath) => {
+  try {
+    const pdfBuffer = fs.readFileSync(pdfPath);
+    const data = await pdfParse(pdfBuffer);
+    return data.text;
+  } catch (error) {
+    console.error(
+      "An error occurred while extracting text from PDF:",
+      error.message
+    );
+    return "";
+  }
+};
+
 const parseDate = (dateString) => {
-  if (!dateString) return moment(); // إذا لم يكن هناك تاريخ
+  const months = {
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12",
+  };
 
-  // تصحيح النصوص غير الضرورية مثل "UniversityOct" أو "DamascusJul"
-  const pattern = /([a-zA-Z]+)(\d{4})/;
-  const match = dateString.match(pattern);
+  const regex = /([a-zA-Z]+)\s*(\d{4})|(\d{4})/;
+  const match = dateString.match(regex);
 
   if (match) {
-    const month = match[1]; // الشهر مثل "Oct"
-    const year = match[2]; // السنة مثل "2018"
-
-    // التحقق إذا كان الشهر مكتوباً كاملاً أو مختصراً
-    const monthsMap = {
-      Jan: "01",
-      Feb: "02",
-      Mar: "03",
-      Apr: "04",
-      May: "05",
-      Jun: "06",
-      Jul: "07",
-      Aug: "08",
-      Sep: "09",
-      Oct: "10",
-      Nov: "11",
-      Dec: "12",
-    };
-
-    // التحقق إذا كان الشهر في النص مختصر مثل "Oct" أو مكتوب كاملاً مثل "October"
-    const monthNumber = monthsMap[month] || month;
-
-    return moment(`${monthNumber} ${year}`, "MM YYYY");
+    const month = match[1] ? months[match[1].slice(0, 3)] : "01";
+    const year = match[2] || match[3];
+    console.log(`Parsed Date: ${year}-${month}-01`);
+    return DateTime.fromISO(`${year}-${month}-01`, { zone: "utc" });
   }
 
-  return moment.invalid(); // في حال لم نجد تطابق
+  return DateTime.invalid();
 };
 
-// دالة لحساب سنوات الخبرة
 const calculateExperience = (startDate, endDate) => {
-  if (!startDate.isValid() || !endDate.isValid()) {
-    return 0; // إذا كانت التواريخ غير صالحة
+  if (!startDate.isValid || !endDate.isValid) {
+    return 0;
   }
-  return endDate.diff(startDate, "years", true); // حساب الفرق بين التواريخ بالسنوات
+  const diff = endDate.diff(startDate, ["years", "months"]).toObject();
+  return diff.years + diff.months / 12;
 };
 
-// دالة لتحليل الخبرات واستخراج السنوات
 const analyzeExperience = (text) => {
-  // نبحث عن تواريخ بداية ونهاية الخبرة
   const dateRegex =
     /([a-zA-Z]+\s*\d{4})\s*[-–—]?\s*(present|[a-zA-Z]+\s*\d{4})/gi;
   const matches = [...text.matchAll(dateRegex)];
@@ -57,34 +61,91 @@ const analyzeExperience = (text) => {
   let totalExperience = 0;
 
   matches.forEach((match) => {
-    // نقوم بتحليل التواريخ باستخدام دالة parseDate
     const startDate = parseDate(match[1].trim());
     const endDate =
       match[2].trim().toLowerCase() === "present"
-        ? moment()
+        ? DateTime.now()
         : parseDate(match[2].trim());
 
     totalExperience += calculateExperience(startDate, endDate);
   });
 
-  return { totalExperience: Math.round(totalExperience * 100) / 100 }; // تقريب النتيجة
+  return +totalExperience.toFixed(1);
 };
 
-// قراءة وتحليل ملف PDF
+const extractSkills = (text) => {
+  const skills = [
+    "JavaScript",
+    "React",
+    "Node.js",
+    "HTML",
+    "CSS",
+    "Python",
+    "MongoDB",
+    "TypeScript",
+    "SQL",
+    "Docker",
+    "Git",
+    "Vue.js",
+    "Angular",
+    "SASS",
+    "Java",
+    "C#",
+    "Swift",
+    "PHP",
+    "Ruby",
+    "Kotlin",
+    "GraphQL",
+    "Express",
+    "AWS",
+    "Azure",
+    "PostgreSQL",
+    "MySQL",
+    "Redis",
+    "Firebase",
+    "Kubernetes",
+    "Bootstrap",
+    "Svelte",
+    "Elasticsearch",
+    "Jest",
+    "GraphQL",
+    "Firebase",
+    "Tailwind CSS",
+    "JQuery",
+    "Salesforce",
+  ];
+
+  const foundSkills = skills.filter((skill) =>
+    text.toLowerCase().includes(skill.toLowerCase())
+  );
+
+  const additionalSkills = text.match(/\b\w+\b/g).filter((word) => {
+    const techRelatedWords = [
+      "API",
+      "cloud",
+      "server",
+      "deployment",
+      "container",
+      "CI/CD",
+    ];
+    return (
+      techRelatedWords.includes(word.toLowerCase()) &&
+      !foundSkills.includes(word)
+    );
+  });
+
+  return [...foundSkills, ...additionalSkills];
+};
+
 const processResume = async (filePath) => {
   try {
-    const pdfBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(pdfBuffer);
+    const text = await extractTextFromPDF(filePath);
+    const totalExperience = analyzeExperience(text);
+    const skills = extractSkills(text);
 
-    const text = data.text;
-    console.log("النص المستخلص من السيرة الذاتية:", text);
-
-    const analysis = analyzeExperience(text);
-
-    console.log("إجمالي سنوات الخبرة:", analysis.totalExperience, "سنوات");
-    return analysis;
+    return { totalExperience, skills };
   } catch (error) {
-    console.error("حدث خطأ أثناء معالجة السيرة الذاتية:", error);
+    console.error("An error occurred while saving the resume:", error.message);
     return null;
   }
 };

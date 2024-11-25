@@ -2,6 +2,7 @@ const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const nodemailer = require("nodemailer");
 const { processResume } = require("../utils/analyzeResume");
+
 require("dotenv").config();
 const APP_ID = process.env.AGORA_APP_ID;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
@@ -29,7 +30,7 @@ exports.register = async (req, res) => {
   res.send("Hello World!!");
 };
 exports.apply = async (req, res) => {
-  console.log(processResume(req.file.path));
+  console.log(await processResume(req.file.path));
 };
 exports.generateToken = async (req, res) => {
   const channelName = req.query.channelName;

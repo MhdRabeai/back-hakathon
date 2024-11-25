@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 4000;
+
 const path = require("path");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
@@ -10,7 +10,7 @@ const http = require("http");
 const { connectDB } = require("./config/db");
 const server = http.createServer(app);
 require("dotenv").config();
-
+const port = process.env.PRTO || 4000;
 const io = require("socket.io")(server, {
   // pingTimeout: 60000,
   cors: {

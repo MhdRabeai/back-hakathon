@@ -6,8 +6,7 @@ const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 const uniqueId = uuidv4();
 const http = require("http");
-// const pdfParse = require("pdf-parse");
-const { connectDB } = require("./config/db");
+const { connectDB, getDB } = require("./config/db");
 const server = http.createServer(app);
 require("dotenv").config();
 const port = process.env.PRTO || 4000;
@@ -50,7 +49,7 @@ io.on("connection", (socket) => {
 });
 
 connectDB().then(() => {
-  app.listen(port, () =>
-    console.log(`Server running on http://localhost:${port}`)
-  );
+  app.listen(port, async () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
 });

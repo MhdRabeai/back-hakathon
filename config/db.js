@@ -13,12 +13,12 @@ async function connectDB() {
 
   try {
     await client.connect();
-    db = client.db("global");
+    db = client.db("hakathon");
     console.log("✅ Connected to MongoDB");
   } catch (err) {
     console.error("❌ Failed to connect to MongoDB:", err);
     process.exit(1);
   }
 }
-
-module.exports = { connectDB };
+const getDB = () => db;
+module.exports = { connectDB, getDB };

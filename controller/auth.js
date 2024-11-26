@@ -2,19 +2,20 @@ const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const nodemailer = require("nodemailer");
 const { processResume } = require("../utils/analyzeResume");
+const { getDB } = require("../config/db");
 
 require("dotenv").config();
 const APP_ID = process.env.AGORA_APP_ID;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
-const url = process.env.MONGO_URL;
-const client = new MongoClient(url, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-const db = client.db("hakathon");
+// const url = process.env.MONGO_URL;
+// const client = new MongoClient(url, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// });
+// const db = client.db("hakathon");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -27,19 +28,6 @@ const transporter = nodemailer.createTransport({
 });
 
 // *********
-
-const candidateCollection = db.collection("candidate");
-// async function connectToDatabase() {
-//   try {
-//     if (!client.topology || !client.topology.isConnected()) {
-//       await client.connect();
-//       console.log("Connected to MongoDB");
-//     }
-//   } catch (err) {
-//     console.error("Error connecting to MongoDB:", err);
-//     throw err;
-//   }
-// }
 
 // *********************************************************************
 // const user = await userCollection.findOne({ email });
@@ -64,6 +52,8 @@ const candidateCollection = db.collection("candidate");
 // return res.status(500).json({ message: "Server error" });
 
 exports.register = async (req, res) => {
+  // جلب جدول من قاعدة البيانات
+  //  await getDB().collection("candidate");
   res.send("Hello World!!");
   // حالة الطلب
   // {
@@ -75,14 +65,13 @@ exports.register = async (req, res) => {
   //   "status": "Under Review"
   // }
 
-  // await userCollection.updateOne(
+  // await getDB().collection("candidate").updateOne(
   //   { email },
   //   { $set: { isActive: true }, $unset: { confirmationCode: "" } }
   // );
 };
 exports.apply = async (req, res) => {
   const { name, email } = req.body;
-  // await connectToDatabase();
   console.log(await processResume(req.file.path));
 };
 exports.generateToken = async (req, res) => {

@@ -133,34 +133,74 @@ exports.firstAccept = async (req, res) => {
     return res.status(404).json({ message: "Server Error" });
   }
 };
-exports.reject = async (req, res) => {
-  const { name, email, phone, locationType, jobTitle, employmentType } =
-    req.body;
-  try {
-    const user = await getDB().collection("candidate").findOne({ name, email });
 
-    if (await user) {
-      return res.status(400).json({ message: "You have already applyed" });
+exports.reject = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const user = await getDB()
+      .collection("candidate")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!(await user)) {
+      return res.status(404).json({ message: "Not Found" });
     }
-    const analyzedData = await processResume(req.file.path);
     await getDB()
       .collection("candidate")
-      .insertOne({
-        _id: new ObjectId(),
-        name,
-        email,
-        phone,
-        locationType,
-        jobTitle,
-        employmentType,
-        cv: req.file.path,
-        experience: analyzedData?.totalExperience || 0,
-        skills: analyzedData?.skills || "",
-        status: "pendding",
-        interview: "",
-        createdAt: new Date(),
-      });
-    return res.status(200).json({ message: "You have been applyed" });
+      .updateOne({ _id: new ObjectId(id) }, { $set: { status: "rejected" } });
+    const mailOptions = {
+      from: "mhd.rabea.naser@gmail.com",
+      to: user["email"],
+      subject: "Principled acceptance",
+      text: `Hello ${user["name"]},\n\nWe do not find any vacancies for you currently. \n\nWe have kept your information until there is a vacancy that suits you \n\n Thank you for applying with us!`,
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Error:", err);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+    console.log("Confirmation email sent!");
+    return res
+      .status(200)
+      .json({ message: "rejected and the message has been sent!" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.sendRoomDetails = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const user = await getDB()
+      .collection("candidate")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!(await user)) {
+      return res.status(404).json({ message: "Not Found" });
+    }
+    await getDB()
+      .collection("candidate")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: "interview-process" } }
+      );
+    const mailOptions = {
+      from: "mhd.rabea.naser@gmail.com",
+      to: user["email"],
+      subject: "Principled acceptance",
+      text: `Hello ${user["name"]},\n\nYour have been accepted for a job interview\n\nYour interview is scheduled on the date: ${allDate["date"]} ,at the time: ${date["time"]}\n\n You will receive the call room name and password on the scheduled interview day \n\n Thank you for applying with us!`,
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Error:", err);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+    console.log("Confirmation email sent!");
+    return res
+      .status(200)
+      .json({ message: "Updated and the message has been sent!" });
   } catch (err) {
     return res.status(404).json({ message: "Server Error" });
   }

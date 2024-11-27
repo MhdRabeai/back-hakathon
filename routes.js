@@ -9,6 +9,15 @@ const {
   joinRoom,
   reject,
   firstAccept,
+  firstReject,
+  sendRoomDetails,
+  acceptAfterInter,
+  getAllRejectedAfterInter,
+  getAllInterviews,
+  getAcceptedAfterInter,
+  getAlldCandidates,
+  getAllRejectedBeforeInter,
+  logout,
 } = require("./controller/auth");
 const multer = require("multer");
 const { isUser } = require("./middleware/auth");
@@ -25,15 +34,30 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = function (app) {
-  // app.post("/register", upload.single("myfile"), register);
-  app.get("/generate-token", generateToken);
   app.post("/apply", upload.single("myfile"), apply);
   app.post("/adminLogin", adminLogin);
-  app.get("/checkToken", isUser, getData);
   app.post("/createRoom", isUser, createRoom);
   app.post("/joinRoom", joinRoom);
   app.post("/firstAccept", firstAccept);
-  app.post("/reject", reject);
+  app.post("/firstReject", firstReject);
+  app.post("/sendRoomDetails", sendRoomDetails);
+  app.post("/acceptAfterInter", acceptAfterInter);
+  app.get("/generate-token", generateToken);
+  app.get("/checkToken", isUser, getData);
+  app.get("/getAllRejectedBeforeInter", getAllRejectedBeforeInter);
+  app.get("/getAllRejectedAfterInter", getAllRejectedAfterInter);
+  app.get(
+    "/getAcceptedCandidatesSortedByAllDate",
+    getAcceptedCandidatesSortedByAllDate
+  );
+  app.get("/getAllInterviews", getAllInterviews);
+  app.get("/getAcceptedAfterInter", getAcceptedAfterInter);
+  app.get("/getAlldCandidates", getAlldCandidates);
+  app.get("/getAllInterviews", getAllInterviews);
+  app.get("/getAllInterviews", getAllInterviews);
+  app.get("/getAllInterviews", getAllInterviews);
+  app.get("/getAllInterviews", getAllInterviews);
+  app.get("/logout", logout);
 
   // app.get("/download/:filename", (req, res) => {
   //   const filename = req.params.filename;

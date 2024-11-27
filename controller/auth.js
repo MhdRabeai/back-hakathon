@@ -19,50 +19,7 @@ const transporter = nodemailer.createTransport({
   logger: true,
 });
 
-// *********
-
-// *********************************************************************
-// const user = await userCollection.findOne({ email });
-
-// const userData = {
-//   _id: new ObjectId(),
-//   name,
-//   email,
-//   password: hashedPassword,
-//   age,
-//   gender,
-//   phone,
-//   avatar: req.file?.filename || "default-avatar.jpg",
-//   role,
-//   isActive: false,
-//   createdAt: new Date(),
-// };
-// console.log("Inserting user data into database...");
-// const userInsertResult = await userCollection.insertOne(userData);
-// console.log("Patient data inserted successfully", userInsertResult);
-// return res.status(200).json({ message: "User registered successfully" });
-// return res.status(500).json({ message: "Server error" });
-
-exports.register = async (req, res) => {
-  const {} = req.body;
-  // جلب جدول من قاعدة البيانات
-  //  await getDB().collection("candidate");
-  res.send("Hello World!!");
-  // حالة الطلب
-  // {
-  //   "candidateName": "John Doe",
-  //   "email": "john@example.com",
-  //   "skills": ["JavaScript", "React", "Node.js"],
-  //   "experience": 3,
-  //   "resume": "path-to-uploaded-resume.pdf",
-  //   "status": "Under Review"
-  // }
-
-  // await getDB().collection("candidate").updateOne(
-  //   { email },
-  //   { $set: { isActive: true }, $unset: { confirmationCode: "" } }
-  // );
-};
+// ********************************************************************
 
 exports.apply = async (req, res) => {
   const { name, email, phone, locationType, jobTitle, employmentType } =
@@ -110,7 +67,7 @@ exports.firstAccept = async (req, res) => {
       .collection("candidate")
       .updateOne(
         { _id: new ObjectId(id) },
-        { $set: { status: "Before interview", interview: date } }
+        { $set: { status: "Before interview", interview: allDate } }
       );
     const mailOptions = {
       from: "mhd.rabea.naser@gmail.com",
@@ -133,8 +90,7 @@ exports.firstAccept = async (req, res) => {
     return res.status(404).json({ message: "Server Error" });
   }
 };
-
-exports.reject = async (req, res) => {
+exports.firstReject = async (req, res) => {
   const { id } = req.body;
   try {
     const user = await getDB()
@@ -188,7 +144,7 @@ exports.sendRoomDetails = async (req, res) => {
       from: "mhd.rabea.naser@gmail.com",
       to: user["email"],
       subject: "Principled acceptance",
-      text: `Hello ${user["name"]},\n\nYour have been accepted for a job interview\n\nYour interview is scheduled on the date: ${allDate["date"]} ,at the time: ${date["time"]}\n\n You will receive the call room name and password on the scheduled interview day \n\n Thank you for applying with us!`,
+      text: `Hello ${user["name"]},\n\nYour VideoCall Name is: ${user["name"]} your password : .... \n\n Thank you for applying with us!`,
     };
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
@@ -198,9 +154,138 @@ exports.sendRoomDetails = async (req, res) => {
       }
     });
     console.log("Confirmation email sent!");
-    return res
-      .status(200)
-      .json({ message: "Updated and the message has been sent!" });
+    return res.status(200).json({ message: " the message has been sent!" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.acceptAfterInter = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const user = await getDB()
+      .collection("candidate")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!(await user)) {
+      return res.status(404).json({ message: "Not Found" });
+    }
+    await getDB()
+      .collection("candidate")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: "final approval" } }
+      );
+
+    return res.status(200).json({ message: "user has been approved!!" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.rejectAfterInter = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const user = await getDB()
+      .collection("candidate")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!(await user)) {
+      return res.status(404).json({ message: "Not Found" });
+    }
+    await getDB()
+      .collection("candidate")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: "Rejected after inter" } }
+      );
+
+    return res.status(200).json({ message: "user has been approved!!" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAllRejectedBeforeInter = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .find({ status: "rejected" })
+      .sort({ experience: -1 })
+      .toArray();
+
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAllRejectedAfterInter = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .find({ status: "Rejected after interview" })
+      .sort({ experience: -1 })
+      .toArray();
+
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAcceptedCandidatesSortedByAllDate = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .aggregate([
+        {
+          $match: { status: "Before interview" },
+        },
+        {
+          $addFields: {
+            fullDate: {
+              $toDate: { $concat: ["$allDate.date", "T", "$allDate.time"] },
+            },
+          },
+        },
+        {
+          $sort: { fullDate: -1 },
+        },
+      ])
+      .toArray();
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAllInterviews = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .find({ status: { $in: ["final approval", "Rejected after interview"] } })
+      .sort({ name: -1 })
+      .toArray();
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAcceptedAfterInter = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .find({ status: "final approval" })
+      .sort({ experience: -1 })
+      .toArray();
+    return res.status(200).json({ users });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.getAlldCandidates = async (req, res) => {
+  try {
+    const users = await getDB()
+      .collection("candidate")
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    return res.status(200).json({ users });
   } catch (err) {
     return res.status(404).json({ message: "Server Error" });
   }
@@ -329,40 +414,3 @@ exports.logout = (req, res) => {
   res.cookie("access_token", "", { maxAge: 0 });
   res.end();
 };
-
-// exports.verifyEmail = async (req, res) => {
-//   const { email, confirmationCode } = req.body;
-
-//   console.log(confirmationCode.join(""));
-//   try {
-//     const user = await userCollection.findOne({ email });
-//     console.log("user", user);
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     if (typeof user["hashedCode"] !== "string") {
-//       console.error("The password to compare must be a string.");
-//     } else {
-//       bcryptjs.compare(
-//         confirmationCode.join(""),
-//         user["hashedCode"],
-//         async (err, isMatch) => {
-//           if (err) {
-//             return `Error comparing password: ${err}`;
-//           } else {
-//             await userCollection.updateOne(
-//               { email },
-//               { $set: { isActive: true }, $unset: { confirmationCode: "" } }
-//             );
-//           }
-//         }
-//       );
-//     }
-//     console.log("Done");
-//     return res.status(200).json({ message: "Email verified successfully!" });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Email verify Faild!!" });
-//   }
-// };

@@ -52,6 +52,7 @@ const transporter = nodemailer.createTransport({
 // return res.status(500).json({ message: "Server error" });
 
 exports.register = async (req, res) => {
+  const {} = req.body;
   // جلب جدول من قاعدة البيانات
   //  await getDB().collection("candidate");
   res.send("Hello World!!");

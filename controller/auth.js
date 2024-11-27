@@ -1,3 +1,4 @@
+const path = require("path");
 const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
 const nodemailer = require("nodemailer");
 const { processResume } = require("../utils/analyzeResume");
@@ -63,8 +64,89 @@ exports.register = async (req, res) => {
 };
 
 exports.apply = async (req, res) => {
-  const { name, email } = req.body;
-  console.log(await processResume(req.file.path));
+  const { name, email, phone, locationType, jobTitle, employmentType } =
+    req.body;
+  try {
+    const user = await getDB().collection("candidate").findOne({ name, email });
+
+    if (await user) {
+      return res.status(400).json({ message: "You have already applyed" });
+    }
+    const analyzedData = await processResume(req.file.path);
+    await getDB()
+      .collection("candidate")
+      .insertOne({
+        _id: new ObjectId(),
+        name,
+        email,
+        phone,
+        locationType,
+        jobTitle,
+        employmentType,
+        cv: req.file.path,
+        experience: analyzedData?.totalExperience || 0,
+        skills: analyzedData?.skills || "",
+        status: "pendding",
+        interview: "",
+        createdAt: new Date(),
+      });
+    return res.status(200).json({ message: "You have been applyed" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.firstAccept = async (req, res) => {
+  const { id, date } = req.body;
+  try {
+    const user = await getDB()
+      .collection("candidate")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!(await user)) {
+      return res.status(404).json({ message: "Not Found" });
+    }
+    await getDB()
+      .collection("candidate")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: "Before interview", interview: date } }
+      );
+    return res.status(200).json({ message: "Updated" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
+};
+exports.reject = async (req, res) => {
+  const { name, email, phone, locationType, jobTitle, employmentType } =
+    req.body;
+  try {
+    const user = await getDB().collection("candidate").findOne({ name, email });
+
+    if (await user) {
+      return res.status(400).json({ message: "You have already applyed" });
+    }
+    const analyzedData = await processResume(req.file.path);
+    await getDB()
+      .collection("candidate")
+      .insertOne({
+        _id: new ObjectId(),
+        name,
+        email,
+        phone,
+        locationType,
+        jobTitle,
+        employmentType,
+        cv: req.file.path,
+        experience: analyzedData?.totalExperience || 0,
+        skills: analyzedData?.skills || "",
+        status: "pendding",
+        interview: "",
+        createdAt: new Date(),
+      });
+    return res.status(200).json({ message: "You have been applyed" });
+  } catch (err) {
+    return res.status(404).json({ message: "Server Error" });
+  }
 };
 exports.generateToken = async (req, res) => {
   const channelName = req.query.channelName;
@@ -152,7 +234,6 @@ exports.adminLogin = async (req, res) => {
         .findOne({ email, password });
       console.log(result);
       if (await result) {
-        console.log("ssss");
         const accessToken = generateAccessToken({
           id: result["_id"],
           role: result["role"],

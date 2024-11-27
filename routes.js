@@ -1,13 +1,14 @@
 const path = require("path");
 const dotenv = require("dotenv");
 const {
-  register,
   generateToken,
   apply,
   getData,
   adminLogin,
   createRoom,
   joinRoom,
+  reject,
+  firstAccept,
 } = require("./controller/auth");
 const multer = require("multer");
 const { isUser } = require("./middleware/auth");
@@ -24,13 +25,15 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = function (app) {
-  app.post("/register", upload.single("myfile"), register);
+  // app.post("/register", upload.single("myfile"), register);
   app.get("/generate-token", generateToken);
   app.post("/apply", upload.single("myfile"), apply);
   app.post("/adminLogin", adminLogin);
   app.get("/checkToken", isUser, getData);
   app.post("/createRoom", isUser, createRoom);
   app.post("/joinRoom", joinRoom);
+  app.post("/firstAccept", firstAccept);
+  app.post("/reject", reject);
 
   // app.get("/download/:filename", (req, res) => {
   //   const filename = req.params.filename;

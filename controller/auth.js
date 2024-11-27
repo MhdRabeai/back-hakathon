@@ -140,6 +140,7 @@ exports.sendRoomDetails = async (req, res) => {
     if (!(await user)) {
       return res.status(404).json({ message: "Not Found" });
     }
+    console.log(user.name.split(" ")[0]);
     await getDB()
       .collection("candidate")
       .updateOne(
@@ -150,7 +151,11 @@ exports.sendRoomDetails = async (req, res) => {
       from: "mhd.rabea.naser@gmail.com",
       to: user["email"],
       subject: "Principled acceptance",
-      text: `Hello ${user["name"]},\n\nYour VideoCall Name is: ${user["name"]} your password : .... \n\n Thank you for applying with us!`,
+      text: `Hello ${
+        user.name.split(" ")[0]
+      },\n\nYour VideoCall Name and Password are the same: ${
+        user.name.split(" ")[0]
+      } \n\n Thank you for applying with us!`,
     };
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
@@ -160,7 +165,12 @@ exports.sendRoomDetails = async (req, res) => {
       }
     });
     console.log("Confirmation email sent!");
-    return res.status(200).json({ message: " the message has been sent!" });
+    return res
+      .status(200)
+      .json({
+        message: " the message has been sent!",
+        room: user.name.split(" ")[0],
+      });
   } catch (err) {
     return res.status(404).json({ message: "Server Error" });
   }
@@ -243,9 +253,21 @@ exports.getAcceptedCandidatesSortedByAllDate = async (req, res) => {
         {
           $match: { status: "Before interview" },
         },
-
         {
-          $sort: { interview: -1 },
+          $addFields: {
+            interviewDateTime: {
+              $dateFromString: {
+                dateString: {
+                  $concat: ["$interview.date", " ", "$interview.time"],
+                },
+                format: "%m/%d/%Y %H:%M:%S",
+                onError: new Date(),
+              },
+            },
+          },
+        },
+        {
+          $sort: { interviewDateTime: 1 },
         },
       ])
       .toArray();

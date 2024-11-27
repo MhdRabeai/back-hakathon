@@ -22,8 +22,10 @@ const transporter = nodemailer.createTransport({
 // ********************************************************************
 
 exports.apply = async (req, res) => {
-  const { name, email, phone, locationType, jobTitle, employmentType } =
+  const { name, email, gender, phone, locationType, jobTitle, employmentType } =
     req.body;
+
+  console.log(req?.file.path);
   try {
     const user = await getDB().collection("candidate").findOne({ name, email });
 
@@ -38,12 +40,13 @@ exports.apply = async (req, res) => {
         name,
         email,
         phone,
+        gender,
         locationType,
         jobTitle,
         employmentType,
-        cv: req.file.path,
+        cv: req?.file.path,
         experience: analyzedData?.totalExperience || 0,
-        skills: analyzedData?.skills || "",
+        skills: analyzedData?.skills || [],
         status: "pendding",
         interview: "",
         createdAt: new Date(),

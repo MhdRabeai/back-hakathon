@@ -19,6 +19,7 @@ const {
   getAllRejectedBeforeInter,
   logout,
   getAcceptedCandidatesSortedByAllDate,
+  rejectAfterInter,
 } = require("./controller/auth");
 const multer = require("multer");
 const { isUser } = require("./middleware/auth");
@@ -43,6 +44,7 @@ module.exports = function (app) {
   app.post("/firstReject", firstReject);
   app.post("/sendRoomDetails", sendRoomDetails);
   app.post("/acceptAfterInter", acceptAfterInter);
+  app.post("/rejectAfterInter", rejectAfterInter);
   app.get("/generate-token", generateToken);
   app.get("/checkToken", isUser, getData);
   app.get("/getAllRejectedBeforeInter", getAllRejectedBeforeInter);
@@ -54,7 +56,7 @@ module.exports = function (app) {
   app.get("/getAllInterviews", getAllInterviews);
   app.get("/getAcceptedAfterInter", getAcceptedAfterInter);
   app.get("/getAlldCandidates", getAlldCandidates);
-  app.get("/getAllInterviews", getAllInterviews);
+
   app.get("/logout", logout);
 
   // app.get("/download/:filename", (req, res) => {

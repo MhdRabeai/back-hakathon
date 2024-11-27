@@ -57,8 +57,8 @@ exports.apply = async (req, res) => {
   }
 };
 exports.firstAccept = async (req, res) => {
-  const { id, allDate } = req.body;
   try {
+    const { id, allDate } = req.body;
     const user = await getDB()
       .collection("candidate")
       .findOne({ _id: new ObjectId(id) });
@@ -66,17 +66,19 @@ exports.firstAccept = async (req, res) => {
     if (!(await user)) {
       return res.status(404).json({ message: "Not Found" });
     }
+
     await getDB()
       .collection("candidate")
       .updateOne(
         { _id: new ObjectId(id) },
         { $set: { status: "Before interview", interview: allDate } }
       );
+
     const mailOptions = {
       from: "mhd.rabea.naser@gmail.com",
       to: user["email"],
       subject: "Principled acceptance",
-      text: `Hello ${user["name"]},\n\nYou have been accepted for a job interview\n\nYour interview is scheduled on the date: ${allDate["date"]} ,at the time: ${date["time"]}\n\n You will receive the call room name and password on the scheduled interview day \n\n Thank you for applying with us!`,
+      text: `Hello ${user.name},\n\nYou have been accepted for a job interview\n\nYour interview is scheduled on the date: ${allDate.date} ,at the time: ${allDate.time}\n\n You will receive the call room name and password on the scheduled interview day \n\n Thank you for applying with us!`,
     };
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
@@ -90,6 +92,7 @@ exports.firstAccept = async (req, res) => {
       .status(200)
       .json({ message: "Updated and the message has been sent!" });
   } catch (err) {
+    console.log(err.message);
     return res.status(404).json({ message: "Server Error" });
   }
 };

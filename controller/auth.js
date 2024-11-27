@@ -243,20 +243,15 @@ exports.getAcceptedCandidatesSortedByAllDate = async (req, res) => {
         {
           $match: { status: "Before interview" },
         },
+
         {
-          $addFields: {
-            fullDate: {
-              $toDate: { $concat: ["$allDate.date", "T", "$allDate.time"] },
-            },
-          },
-        },
-        {
-          $sort: { fullDate: -1 },
+          $sort: { interview: -1 },
         },
       ])
       .toArray();
     return res.status(200).json({ users });
   } catch (err) {
+    console.log(err.message);
     return res.status(404).json({ message: "Server Error" });
   }
 };

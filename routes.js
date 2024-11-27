@@ -49,10 +49,7 @@ module.exports = function (app) {
   app.get("/checkToken", isUser, getData);
   app.get("/getAllRejectedBeforeInter", getAllRejectedBeforeInter);
   app.get("/getAllRejectedAfterInter", getAllRejectedAfterInter);
-  app.get(
-    "/getAcceptedCandidatesSortedByAllDate",
-    getAcceptedCandidatesSortedByAllDate
-  );
+  app.get("/acceptedCandidateByDate", getAcceptedCandidatesSortedByAllDate);
   app.get("/getAllInterviews", getAllInterviews);
   app.get("/getAcceptedAfterInter", getAcceptedAfterInter);
   app.get("/getAlldCandidates", getAlldCandidates);

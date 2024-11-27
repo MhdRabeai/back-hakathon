@@ -5,7 +5,6 @@ const {
   generateToken,
   apply,
   getData,
-
   adminLogin,
   createRoom,
   joinRoom,

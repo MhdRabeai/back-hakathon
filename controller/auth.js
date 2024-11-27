@@ -97,7 +97,7 @@ exports.apply = async (req, res) => {
   }
 };
 exports.firstAccept = async (req, res) => {
-  const { id, date } = req.body;
+  const { id, allDate } = req.body;
   try {
     const user = await getDB()
       .collection("candidate")
@@ -112,7 +112,23 @@ exports.firstAccept = async (req, res) => {
         { _id: new ObjectId(id) },
         { $set: { status: "Before interview", interview: date } }
       );
-    return res.status(200).json({ message: "Updated" });
+    const mailOptions = {
+      from: "mhd.rabea.naser@gmail.com",
+      to: user["email"],
+      subject: "Principled acceptance",
+      text: `Hello ${user["name"]},\n\nYou have been accepted for a job interview\n\nYour interview is scheduled on the date: ${allDate["date"]} ,at the time: ${date["time"]}\n\n You will receive the call room name and password on the scheduled interview day \n\n Thank you for applying with us!`,
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Error:", err);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+    console.log("Confirmation email sent!");
+    return res
+      .status(200)
+      .json({ message: "Updated and the message has been sent!" });
   } catch (err) {
     return res.status(404).json({ message: "Server Error" });
   }

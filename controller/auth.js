@@ -165,12 +165,10 @@ exports.sendRoomDetails = async (req, res) => {
       }
     });
     console.log("Confirmation email sent!");
-    return res
-      .status(200)
-      .json({
-        message: " the message has been sent!",
-        room: user.name.split(" ")[0],
-      });
+    return res.status(200).json({
+      message: " the message has been sent!",
+      room: user.name.split(" ")[0],
+    });
   } catch (err) {
     return res.status(404).json({ message: "Server Error" });
   }
@@ -293,7 +291,7 @@ exports.getAcceptedAfterInter = async (req, res) => {
   try {
     const users = await getDB()
       .collection("candidate")
-      .find({ status: "final approval" })
+      .find({ status: "interview-process" })
       .sort({ experience: -1 })
       .toArray();
     return res.status(200).json({ users });

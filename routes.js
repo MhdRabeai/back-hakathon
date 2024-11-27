@@ -18,6 +18,7 @@ const {
   getAlldCandidates,
   getAllRejectedBeforeInter,
   logout,
+  getAcceptedCandidatesSortedByAllDate,
 } = require("./controller/auth");
 const multer = require("multer");
 const { isUser } = require("./middleware/auth");
@@ -53,9 +54,6 @@ module.exports = function (app) {
   app.get("/getAllInterviews", getAllInterviews);
   app.get("/getAcceptedAfterInter", getAcceptedAfterInter);
   app.get("/getAlldCandidates", getAlldCandidates);
-  app.get("/getAllInterviews", getAllInterviews);
-  app.get("/getAllInterviews", getAllInterviews);
-  app.get("/getAllInterviews", getAllInterviews);
   app.get("/getAllInterviews", getAllInterviews);
   app.get("/logout", logout);
 
